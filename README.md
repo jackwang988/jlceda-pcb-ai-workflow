@@ -39,9 +39,9 @@
 
 **方式 A｜交给支持本地文件操作的 Agent 安装（推荐）**
 
-复制下面的指令，将仓库地址替换为实际公开仓库地址（公开前本包不会自动上传）：
+复制下面的指令，安装到支持本地 Skills 的 AI 工具：
 
-> 请从 GitHub 安装 `jlceda-pcb-ai-workflow` 到当前 AI 工具的用户级 Skills 目录。检查安装后目录根部直接包含 `SKILL.md`、`scripts/`、`data/`、`references/`，不要多嵌套一层。运行 `python tools/validate_skill.py .`、`python tools/privacy_scan.py .` 和 `python -B tests/run_tests.py`，确认全部通过。要连接并操作 EDA 时，再按官方指南安装 `easyeda-api` 与 `run-api-gateway` 扩展。不要自动下单、上传制造文件或替用户确认门禁。
+> 请从 https://github.com/jackwang988/jlceda-pcb-ai-workflow 安装 `jlceda-pcb-ai-workflow` 到当前 AI 工具的用户级 Skills 目录。检查安装后目录根部直接包含 `SKILL.md`、`scripts/`、`data/`、`references/`，不要多嵌套一层。运行 `python tools/validate_skill.py .`、`python tools/privacy_scan.py .` 和 `python -B tests/run_tests.py`，确认全部通过。要连接并操作 EDA 时，再按官方指南安装 `easyeda-api` 与 `run-api-gateway` 扩展。不要自动下单、上传制造文件或替用户确认门禁。
 
 **方式 B｜手工安装到 Codex（Windows PowerShell）**：解压发布包之后，在 `jlceda-pcb-ai-workflow` 文件夹内打开 PowerShell：
 
