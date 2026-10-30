@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "site": "jlc-pcb.com / jlc-smt.com",
+  "description": "嘉立创 BOM 与坐标(CPL)文件格式规范。脚本只读本文件取参数；每条规则带来源与原文。仅处理 csv/tsv/txt（xls/xlsx 不解析，遇到即 BLOCKED，不当作通过）。",
+  "sources": {
+    "S_FMT": { "tier": "T1", "title": "嘉立创BOM&坐标相关格式规范", "url": "http://www.jlc-pcb.com/portal/server_guide_48022.html", "fetched_at": "2026-10-30" },
+    "S_CPL": { "tier": "T1", "title": "坐标文件格式规范解读", "url": "https://www.jlc-smt.com/help_document/id/53182.html", "fetched_at": "2026-10-30" },
+    "S_EDA": { "tier": "T1", "title": "嘉立创EDA BOM表导出", "url": "https://docs.lceda.cn/cn/Schematic/Export-BOM/", "fetched_at": "2026-10-30" },
+    "S_OBS": { "tier": "T0", "title": "嘉立创EDA 4.1.93 实测导出", "url": "eda.pcb_ManufactureData.getBomFile / getPickAndPlaceFile", "fetched_at": "2026-10-30" }
+  },
+  "params": {
+    "bom_required_columns": ["Comment", "Designator", "Footprint"],
+    "bom_optional_columns": ["Quantity", "Description", "Pins", "LibRef", "Supplier Part", "Manufacturer Part", "Manufacturer", "Supplier", "Value", "No."],
+    "cpl_required_columns": ["Designator", "Mid X", "Mid Y", "Layer", "Rotation"],
+    "allowed_layers": ["T", "B", "TOP", "BOTTOM"],
+    "allowed_coord_units": ["mm", "mil"],
+    "designator_max_len": 64,
+    "designator_forbidden_chars": "@#$%^&{}[]",
+    "designator_separators_ok": [",", " "],
+    "designator_separators_bad": ["，", ";", "；", "|", ":", "：", "~", "、"],
+    "rotation_max_decimals": 3,
+    "lcsc_part_regex": "^C\\d+$",
+    "xls_max_columns": 12,
+    "total_row_markers": ["total", "合计", "总计", "sum"]
+  },
+  "rules": [
+    { "id": "BOM.COL.REQUIRED", "severity": "BLOCK", "src": "S_FMT", "quote": "BOM必需字段 Comment / Designator / Footprint" },
+    { "id": "BOM.DES.SEP", "severity": "BLOCK", "src": "S_FMT", "quote": "多个位号仅使用英文逗号或空格分隔...不要使用中文逗号、分号、竖线、冒号、波浪线等作为位号分隔符" },
+    { "id": "BOM.DES.RANGE", "severity": "BLOCK", "src": "S_FMT", "quote": "连续位号可使用英文减号表示范围，例如R1-4...范围前缀必须一致，起始编号应小于结束编号" },
+    { "id": "BOM.DES.LEN", "severity": "BLOCK", "src": "S_FMT", "quote": "单个位号长度不应超过64个字符，暂不支持中文位号" },
+    { "id": "BOM.DES.CHARS", "severity": "BLOCK", "src": "S_FMT", "quote": "位号中不要使用@、#、$、%、^、&、{ }、[ ]等特殊字符" },
+    { "id": "BOM.DES.CASE_DUP", "severity": "BLOCK", "src": "S_FMT", "quote": "系统匹配时不区分位号字母大小写，不要使用R1和r1表示两个不同器件" },
+    { "id": "BOM.DES.DUP", "severity": "BLOCK", "src": "S_FMT", "quote": "BOM和坐标文件中的位号完整且不存在重复" },
+    { "id": "BOM.QTY.MATCH", "severity": "BLOCK", "src": "S_FMT", "quote": "BOM中的Quantity与该行Designator包含的有效位号数量一致" },
+    { "id": "BOM.EMPTY.FIELD", "severity": "BLOCK", "src": "S_FMT", "quote": "至少保留Comment、Designator和Footprint三列（不得为空）" },
+    { "id": "BOM.COMMENT.AMBIG", "severity": "WARN", "src": "S_FMT", "quote": "不要只填写容易产生歧义的数字，例如“100”；阻值、容值和电感量等数值应带单位" },
+    { "id": "BOM.LCSC.FORMAT", "severity": "WARN", "src": "S_FMT", "quote": "填写后必须确认编号对应的型号和封装与设计一致；错误编号比缺少编号更容易造成错误匹配" },
+    { "id": "BOM.LCSC.MISSING", "severity": "WARN", "src": "S_FMT", "quote": "嘉立创元件编号：推荐字段，缺失则依靠 Comment/Footprint 匹配" },
+    { "id": "BOM.TOTAL_ROW", "severity": "WARN", "src": "S_FMT", "quote": "不要使用合并单元格、多级表头、隐藏列、空白标题行或合计行" },
+    { "id": "CPL.COL.REQUIRED", "severity": "BLOCK", "src": "S_FMT", "quote": "坐标文件至少保留 Designator、Mid X、Mid Y、Layer 和 Rotation" },
+    { "id": "CPL.HEADER.UNIT", "severity": "BLOCK", "src": "S_CPL", "quote": "禁止在标题行中添加单位，例如不能在 “Mid X” 后附带 “mm” 单位信息" },
+    { "id": "CPL.UNIT.CONSIST", "severity": "BLOCK", "src": "S_CPL", "quote": "常规单位推荐使用毫米（mm），也支持密耳（mil）；采用其他单位，将无法制作贴片资料；不要在同一文件中混用" },
+    { "id": "CPL.UNIT.MIL_SUFFIX", "severity": "BLOCK", "src": "S_CPL", "quote": "若单位为密耳（mil）时，必须在数值后注明单位" },
+    { "id": "CPL.LAYER", "severity": "BLOCK", "src": "S_CPL", "quote": "Layer 需填写器件贴装所在层，仅可填 Top（T）或 Bottom（B）" },
+    { "id": "CPL.ROT.NUMERIC", "severity": "BLOCK", "src": "S_CPL", "quote": "Rotation 填写可解析的数字角度；旋转角度最多支持三位小数" },
+    { "id": "CPL.DES.DUP", "severity": "BLOCK", "src": "S_FMT", "quote": "一个位号一行；位号不重复，大小写不敏感" },
+    { "id": "CPL.RANGE.BOARD", "severity": "BLOCK", "src": "S_CPL", "quote": "坐标内最大坐标减最小坐标所得到的数值，不可以大于PCB出货尺寸" },
+    { "id": "X.BOM_CPL.SET", "severity": "BLOCK", "src": "S_FMT", "quote": "不贴器件在BOM和坐标文件中的处理保持一致；BOM和坐标文件中的位号完整" },
+    { "id": "FILE.ENC.NATIVE", "severity": "WARN", "src": "S_EDA", "quote": "嘉立创EDA的BOM和坐标文件均采用UNICODE编码，以制表符为CSV分隔符，如果无法使用，请自行转换为 CSV(逗号分隔) 并另存为 ANSI 或 UTF-8" },
+    { "id": "FILE.XLS.UNSUPPORTED", "severity": "BLOCK", "src": "S_FMT", "quote": "xls/xlsx 只读取第一个工作表和前12列；本工具不解析，须另存为 CSV 后再检查" }
+  ]
+}

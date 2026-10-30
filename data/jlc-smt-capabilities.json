@@ -1,0 +1,144 @@
+{
+  "schema_version": 1,
+  "site": "jlc-smt.com",
+  "unit": "mm",
+  "scope": "optional",
+  "description": "SMT可制造性设计规则（可选范围）。仅当 process.smt 为 economy/standard 时启用；默认流程终点是 Gerber，不涉及贴片下单则整份跳过。规则落在PCB设计里（工艺边/Mark/间距/焊盘），所以放在导出前预检。",
+  "tolerance_epsilon": 0.001,
+  "sources": {
+    "S_SMT_CAP": {
+      "tier": "T1", "title": "工艺能力_嘉立创SMT",
+      "url": "https://www.jlc-smt.com/vtechnology", "fetched_at": "2026-10-30"
+    },
+    "S_SMT_SPEC": {
+      "tier": "T1", "title": "SMT工艺规范说明文档（P0基础篇/P1进阶篇/P2优化篇）",
+      "url": "https://m.jlc.com/portal/server_guide_64042.html", "fetched_at": "2026-10-30"
+    },
+    "S_PCB": {
+      "tier": "T1", "title": "嘉立创PCB工艺加工能力范围说明（工艺边描述）",
+      "url": "https://www.jlc.com/portal/vtechnology.html", "fetched_at": "2026-10-30"
+    },
+    "S_INTL": {
+      "tier": "T1", "title": "JLCPCB国际站 Minimum Spacing Requirements for SMD Components",
+      "url": "https://jlcpcb.com/help/article/minimum-spacing-for-smd-components", "fetched_at": "2026-10-30"
+    }
+  },
+  "conflicts": [
+    {
+      "id": "C-1",
+      "topic": "阻容元件间距",
+      "values": [
+        { "src": "S_INTL", "value": "0402-0402 约 0.15~0.18mm", "meaning": "最低可贴" },
+        { "src": "S_SMT_SPEC", "value": "≥1mm", "meaning": "良率推荐(P1 器件间隔规范)" }
+      ],
+      "resolution": "默认国内站口径：以 S_SMT_SPEC 作 recommended；limit 留空。国际站最低值仅作旁证记录。"
+    },
+    {
+      "id": "C-2",
+      "topic": "工艺边宽度",
+      "values": [
+        { "src": "S_SMT_SPEC", "value": "5-8mm，最小不低于3mm", "meaning": "P0 基础篇" },
+        { "src": "S_PCB", "value": "我司SMT需要5mm宽", "meaning": "PCB工艺页拼板说明" }
+      ],
+      "resolution": "limit=3.0(P0 最小)，recommended=5.0。"
+    }
+  ],
+  "rules": [
+    {
+      "id": "SMT.RAIL.WIDTH", "name": "工艺边宽度", "key": "rail_width", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 3.0, "src": "S_SMT_SPEC", "quote": "工艺边设计规范：宽度5-8mm，最小不低于3mm" },
+      "recommended": { "value": 5.0, "src": "S_SMT_SPEC", "quote": "工艺边设计规范：宽度5-8mm" }
+    },
+    {
+      "id": "SMT.MARK.COUNT", "name": "Mark点数量", "key": "mark_count", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 3, "src": "S_SMT_SPEC", "quote": "MARK点：至少3个，L形不对称分布" }
+    },
+    {
+      "id": "SMT.MARK.PAD_DIA", "name": "Mark点铜箔直径", "key": "mark_pad_dia", "op": "==",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 1.0, "src": "S_SMT_SPEC", "quote": "铜箔直径1.0mm、开窗2.0mm" }
+    },
+    {
+      "id": "SMT.MARK.OPEN_DIA", "name": "Mark点开窗直径", "key": "mark_open_dia", "op": "==",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 2.0, "src": "S_SMT_SPEC", "quote": "铜箔直径1.0mm、开窗2.0mm" }
+    },
+    {
+      "id": "SMT.MARK.TO_EDGE", "name": "Mark点中心距板边", "key": "mark_to_edge", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 3.85, "src": "S_SMT_SPEC", "quote": "中心距板边不小于3.85mm，周围3mm禁布" }
+    },
+    {
+      "id": "SMT.MARK.KEEPOUT", "name": "Mark点周围禁布", "key": "mark_keepout", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 3.0, "src": "S_SMT_SPEC", "quote": "周围3mm禁布" }
+    },
+    {
+      "id": "SMT.PAD.ADJ_GAP", "name": "相邻焊盘间距", "key": "min_adjacent_pad_gap", "op": ">=",
+      "recommended": { "value": 0.2, "src": "S_SMT_SPEC", "quote": "器件相邻引脚及焊盘间距：常规相邻焊盘不小于0.2mm" }
+    },
+    {
+      "id": "SMT.PAD.QFP_GAP", "name": "QFP引脚焊盘间距", "key": "min_qfp_pin_gap", "op": ">=",
+      "recommended": { "value": 0.3, "src": "S_SMT_SPEC", "quote": "QFP引脚不小于0.3mm" }
+    },
+    {
+      "id": "SMT.PAD.VIA_IN_PAD", "name": "贴片焊盘内过孔数量", "key": "via_in_smd_pad_count", "op": "<=",
+      "recommended": { "value": 0, "src": "S_SMT_SPEC", "quote": "焊盘上的过孔设计：过孔不应放在贴片焊盘内；优先移出焊盘；高密度设计采用树脂塞孔加电镀填平" },
+      "note": "6层及以上嘉立创默认树脂塞孔+电镀盖帽(盘中孔)，可豁免，由工程师确认"
+    },
+    {
+      "id": "SMT.THERMAL.ARM", "name": "热阻焊盘连接臂宽度", "key": "thermal_arm_width", "op": "<=",
+      "recommended": { "value": 0.25, "src": "S_SMT_SPEC", "quote": "0603及以上chip元件连接GND或电源大面积铜皮时采用热阻焊盘；连接臂不大于0.25mm" }
+    },
+    {
+      "id": "SMT.SPACING.PASSIVE", "name": "阻容/二极管/三极管间距(0402-1206)", "key": "min_passive_spacing", "op": ">=",
+      "recommended": { "value": 1.0, "src": "S_SMT_SPEC", "quote": "器件间隔规范：0402-1206阻容及二极管、晶体管间距不小于1mm" },
+      "alt_reference": { "src": "S_INTL", "value": "0.15~0.35mm(最低可贴)", "see": "conflicts.C-1" }
+    },
+    {
+      "id": "SMT.SPACING.IC", "name": "IC间距", "key": "min_ic_spacing", "op": ">=",
+      "recommended": { "value": 3.0, "src": "S_SMT_SPEC", "quote": "IC不小于3mm" }
+    },
+    {
+      "id": "SMT.SPACING.HEAT", "name": "发热/热敏器件间距", "key": "min_heat_spacing", "op": ">=",
+      "recommended": { "value": 5.0, "src": "S_SMT_SPEC", "quote": "发热与热敏器件不小于5mm" }
+    },
+    {
+      "id": "SMT.SILK.POLARITY_WIDTH", "name": "极性丝印线宽", "key": "min_silk_width", "op": ">=",
+      "recommended": { "value": 0.15, "src": "S_SMT_SPEC", "quote": "元器件及PCB极性标识规范：PCB丝印不覆盖焊盘，线宽不小于0.15mm" }
+    },
+    {
+      "id": "SMT.IC.PITCH_ECON", "name": "最小IC脚距(经济型)", "key": "min_ic_pitch", "op": ">=",
+      "applies": { "when": { "smt": ["economy"] } },
+      "limit": { "value": 0.4, "src": "S_SMT_CAP", "quote": "最小IC pin间距 经济型 0.4mm" }
+    },
+    {
+      "id": "SMT.IC.PITCH_STD", "name": "最小IC脚距(标准型)", "key": "min_ic_pitch", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 0.35, "src": "S_SMT_CAP", "quote": "最小IC pin间距 标准型 0.35mm" }
+    },
+    {
+      "id": "SMT.BGA.PITCH_ECON", "name": "BGA球距(经济型)", "key": "min_bga_pitch", "op": ">=",
+      "applies": { "when": { "smt": ["economy"] } },
+      "limit": { "value": 0.5, "src": "S_SMT_CAP", "quote": "BGA球径间距 经济型 0.5mm" }
+    },
+    {
+      "id": "SMT.BGA.PITCH_STD", "name": "BGA球距(标准型)", "key": "min_bga_pitch", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 0.3, "src": "S_SMT_CAP", "quote": "BGA球径间距 标准型 0.3mm" }
+    },
+    {
+      "id": "SMT.BOARD.SIZE_STD", "name": "标准型SMT板尺寸下限", "key": "min_board_dim", "op": ">=",
+      "applies": { "when": { "smt": ["standard"] } },
+      "limit": { "value": 70.0, "src": "S_SMT_CAP", "quote": "尺寸 标准型 70*70mm - 460*510mm" },
+      "note": "小于此值需拼板"
+    },
+    {
+      "id": "SMT.BOARD.SIZE_ECON", "name": "经济型SMT板尺寸下限", "key": "min_board_dim", "op": ">=",
+      "applies": { "when": { "smt": ["economy"] } },
+      "limit": { "value": 10.0, "src": "S_SMT_CAP", "quote": "尺寸 经济型 10*10mm - 470*570mm" }
+    }
+  ]
+}

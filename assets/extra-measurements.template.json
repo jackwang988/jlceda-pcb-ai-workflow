@@ -1,0 +1,16 @@
+{
+  "_说明": "补充实测值（单位一律 mm，计数类为个数）。用于补全 gerber_guard 无法从文件反推的项，数据应来自 EDA API 或几何运算，不得手填估计值。只写你确实测到的键，未测的键不要写（写了 null 会按缺失处理）。",
+  "min_track_space": null,
+  "min_pad_to_track": null,
+  "min_via_outer": null,
+  "min_via_outer_minus_drill": null,
+  "min_via_hole_edge_gap": null,
+  "min_th_annular": null,
+  "min_th_hole_gap": null,
+  "min_npth_ring": null,
+  "min_mask_expansion": null,
+  "min_mask_bridge": null,
+  "min_silk_height": null,
+  "min_silk_to_pad": null,
+  "min_copper_to_edge": null
+}

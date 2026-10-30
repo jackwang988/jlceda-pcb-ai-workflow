@@ -1,0 +1,26 @@
+{
+  "synthetic": true,
+  "note": "全部由 tools/make_fixtures.py 生成，不含任何真实设计。",
+  "files": {
+    "synthetic_2layer_fs45.zip": {
+      "bytes": 11747,
+      "sha256": "0349ad186dcb0f35baac8c1fac635f2854ed507e58d8b065349da029c9a16c2d"
+    },
+    "synthetic_2layer_fs26_unrouted.zip": {
+      "bytes": 10121,
+      "sha256": "00d114e3f5642d290088a6813aa765571ca511f1985161482b5823b92ded15bf"
+    },
+    "synthetic_native_bom_utf16.csv": {
+      "bytes": 1322,
+      "sha256": "8e050d10faf5d81442e0405b87f1fd6d88457a2185c60b74c573d95b8324148d"
+    },
+    "synthetic_native_cpl_utf16.csv": {
+      "bytes": 5668,
+      "sha256": "e3eab5579536812c47825ab5b10af4d1ce9b179cd37ee4cacd274c4f4497a52f"
+    },
+    "process_2layer_1oz.json": {
+      "bytes": 134,
+      "sha256": "3d394c1aca09a44e1e0a1e65efd244ba74dc98481e12fc38d69215e1672f6e5e"
+    }
+  }
+}

@@ -1,0 +1,139 @@
+{
+  "schema_version": 1,
+  "description": "实测坑登记簿。全部来自开发期（2026-10-29/30，EDA 3.2.149 与 4.1.93）的真实操作，不是网上抄的。evidence 给出可复核的出处。新增条目必须带 evidence。",
+  "pitfalls": [
+    {
+      "id": "BR-01",
+      "area": "bridge",
+      "symptom": "未 openDocument(pageUuid) 就 sch_PrimitiveComponent.create，30s 超时，HTTP 500",
+      "countermeasure": "先打开目标文档；HTTP 500 必须读 body，真实错误在 body 里",
+      "evidence": "开发期实测 2026-10-29 / bridge_client.py 已固化读 body"
+    },
+    {
+      "id": "BR-02",
+      "area": "bridge",
+      "symptom": "return 里带 EDA 完整对象 → 循环引用 → 序列化失败 → 500",
+      "countermeasure": "只回原始类型/字段；用 JSON.stringify 兜底前先裁剪",
+      "evidence": "开发期实测 2026-10-29"
+    },
+    {
+      "id": "BR-03",
+      "area": "bridge",
+      "symptom": "单次 execute 过重超时（约12个器件失败、11个成功）",
+      "countermeasure": "分批：器件≤12、导线≤15~20（bridge_client.chunks）",
+      "evidence": "开发期实测 2026-10-29"
+    },
+    {
+      "id": "BR-04",
+      "area": "bridge",
+      "symptom": "autoRouting 内部有 900s 硬上限，超时后中间结果不提交",
+      "countermeasure": "大板分网络批次；Bridge 超时需≥900s",
+      "evidence": "开发期实测 2026-10-30 + 官方 autorouting 文档"
+    },
+    {
+      "id": "BR-05",
+      "area": "bridge",
+      "symptom": "升级 easyeda-api 会覆盖用户对 bridge-server.mjs 的 REQUEST_TIMEOUT_MS 补丁(30s→900s)",
+      "countermeasure": "升级后复查该常量；bridge_client 默认 timeout 900s",
+      "evidence": "开发期实测 2026-10-30"
+    },
+    {
+      "id": "EV-01",
+      "area": "version",
+      "symptom": "autoRouting/autoLayout 在 3.2.149 为 undefined，4.1.93 才可用；旧版 importChanges 恒返回 false",
+      "countermeasure": "写入类节点前用 typeof 判断，不存在则转人工",
+      "evidence": "开发期实测 2026-10-30；本机现为 4.1.93"
+    },
+    {
+      "id": "EV-02",
+      "area": "const",
+      "symptom": "运行时 EPCB_LayerId 未定义(is not defined)",
+      "countermeasure": "硬编码常量表：TOP=1、BOTTOM=2、BOARD_OUTLINE=11（见 units-and-ids.md）",
+      "evidence": "开发期实测 2026-10-29"
+    },
+    {
+      "id": "EV-03",
+      "area": "api",
+      "symptom": "pcb_PrimitivePolyline.create 参数顺序 net 在 layer 之前",
+      "countermeasure": "create(net, layer, polygon, lineWidth)；polygon 用 pcb_MathPolygon.createPolygon([x,y,'L',...])",
+      "evidence": "开发期实测 2026-10-30"
+    },
+    {
+      "id": "LB-01",
+      "area": "library",
+      "symptom": "系统库阻容按具体型号命名，无通用 R/C；模糊搜索全是噪声",
+      "countermeasure": "按型号精确搜，维护常用型号映射表",
+      "evidence": "开发期实测 2026-10-29"
+    },
+    {
+      "id": "LB-02",
+      "area": "library",
+      "symptom": "系统库 Type-C 只有 8 脚、无 D+/D-；1.66kΩ 搜不到",
+      "countermeasure": "选型必须对照 datasheet 核引脚；缺值用安全替代并记录",
+      "evidence": "开发期实测 2026-10-29"
+    },
+    {
+      "id": "ST-01",
+      "area": "state",
+      "symptom": "不 save，重启后整个原理图/PCB 丢失",
+      "countermeasure": "每个写入节点结尾 save（bridge_client save）并回读计数对账",
+      "evidence": "开发期实测 2026-10-30：升级重启后整个原理图全部丢失"
+    },
+    {
+      "id": "UN-01",
+      "area": "units",
+      "symptom": "PCB 单位=1mil，原理图=0.01inch(10mil)，差10倍",
+      "countermeasure": "常量表 + 放置后回读坐标对账",
+      "evidence": "easyeda-api 官方说明 + 开发期实测"
+    },
+    {
+      "id": "FL-01",
+      "area": "export",
+      "symptom": "getGerberFile 返回浏览器 File；通用脚本的 [:8000] 截断会切坏 base64",
+      "countermeasure": "专用脚本 export_gerber.py：分块 btoa、不截断",
+      "evidence": "开发期实测 2026-10-30"
+    },
+    {
+      "id": "DR-01",
+      "area": "drc",
+      "symptom": "pcb_Drc.check(strict,ui,false) 只返回 boolean，看不到错误位置",
+      "countermeasure": "用 verbose=true：返回分类数组，每条含 errorType/net/obj1 与 explanation.errData.position(x,y)",
+      "evidence": "P0 探针 2026-10-30（tests/probes/probe_drc.js；结果因含工程信息未随包分发，结构见 references/p0-findings.md）"
+    },
+    {
+      "id": "DR-02",
+      "area": "drc",
+      "symptom": "Connection Error 在 explanation.errData.position 给的是画布坐标，单位随画布",
+      "countermeasure": "定位问题以网络名+器件焊盘为准，坐标仅作辅助",
+      "evidence": "P0 探针 2026-10-30"
+    },
+    {
+      "id": "PR-01",
+      "area": "spec",
+      "symptom": "EDA 内置 JLCPCB Capability 预设比官方工艺页更保守(如多层1oz线宽预设0.102 vs 工艺页极限0.0889mm)",
+      "countermeasure": "预设=recommended，工艺页=limit，三档判定而非单阈值",
+      "evidence": "P0 取证 2026-10-30，见 data/rule-presets/_all_raw.json"
+    },
+    {
+      "id": "GB-01",
+      "area": "export",
+      "symptom": "EDA 3.2.149 导出的 Drill_PTH_Through.DRL 把过孔与插件焊盘孔合并在同一文件；4.1.93 起额外导出 Drill_PTH_Through_Via.DRL。注意：_Via.DRL 是 PTH_Through.DRL(全部金属化孔)的**子集**，不是“另一半”。实测：PTH=0.305mm孔×51+1.5mm孔×2+0.6mm槽×4，Via=0.305×51，过孔数与 EDA API(51) 一致",
+      "countermeasure": "旧版只能得到最小金属化孔径；新版 gerber_guard 用“PTH 按孔径个数 - Via 按孔径个数”反推插件孔 min_th_drill，不要直接取非 Via 文件的最小刀具",
+      "evidence": "实测导出包 2026-10-30（旧包 13 文件 vs 4.1.93 新包 15 文件）"
+    },
+    {
+      "id": "GB-02",
+      "area": "export",
+      "symptom": "导出包里某层几乎为空(如底层铜仅34行)而 DRC 无报错",
+      "countermeasure": "gerber_guard 对铜层统计 D01/D03 操作数，过少则 WARN",
+      "evidence": "开发期实测的一份 2 层板导出包（底层铜）"
+    },
+    {
+      "id": "BR-06",
+      "area": "bridge",
+      "symptom": "调用 pcb_ManufactureData.getPdfFile / sch_ManufactureData.getSvgFile / getPngFile 后 EDA 不返回，Bridge 上 pendingRequests 一直累积，随后 EDA 窗口断开重连不上",
+      "countermeasure": "本流程不使用这些接口；bridge_client 默认拦截（allow_hang=True 才放行）。其余同类探测一律先做带内部超时的单个探测，不要把多个导出接口塞进同一次 execute",
+      "evidence": "2026-10-30 实测：getPdfFile/getSvgFile/getPngFile 卡死；getProjectFile 约 12s 返回 388KB epro2；getDocumentFile 约 0.3s 返回；getSchematicFile 在 PCB 页签下返回 undefined"
+    }
+  ]
+}

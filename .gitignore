@@ -1,0 +1,30 @@
+# Local configurations, private design data and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.asc
+credentials.json
+secrets.json
+private/
+local/
+projects/
+output/
+outputs/
+releases/
+*.log
+# Python / tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.DS_Store
+Thumbs.db
+# Temporary and locally-generated artifacts
+*.tmp
+*.bak

@@ -1,0 +1,19 @@
+{
+  "_说明": "工艺声明模板。必填 layers 与 copper_oz；null 表示未决，不是默认值——缺失或 null 会被 spec_check / gerber_guard 拒绝(BLOCKED)，不会猜工艺。其余字段缺失时相关规则标 NEEDS_EVIDENCE。",
+  "layers": null,
+  "copper_oz": null,
+  "thickness_mm": null,
+  "surface": null,
+  "edge": "routed",
+  "mask_color": null,
+  "smt": null,
+  "_字段取值": {
+    "layers": "整数：1 / 2 / 4 / 6 …",
+    "copper_oz": "外层成品铜厚：1 / 2 / 2.5 / 3.5 / 4.5 …（双面板）；1 / 1.5 / 2（多层）",
+    "thickness_mm": "0.4 / 0.6 / 0.8 / 1.0 / 1.2 / 1.6 / 2.0",
+    "surface": "HASL_LEADED / HASL_LEADFREE / ENIG / OSP",
+    "edge": "routed(锣边，默认) / vcut(V割拼板)",
+    "mask_color": "green / red / yellow / blue / purple / black / white",
+    "smt": "null(默认，不涉及贴片) / economy / standard —— 仅当声明贴片时才启用 SMT 设计规则"
+  }
+}

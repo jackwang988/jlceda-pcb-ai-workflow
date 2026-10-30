@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "description": "嘉立创EDA导出的 Gerber 压缩包文件清单规范。来源：官方文档 + 实测真实导出包(2层板, EasyEDA Pro 3.2.149/4.1.93)。文件名由 EDA 导出决定，非用户可配。",
+  "sources": {
+    "S_DOC": { "tier": "T1", "title": "生成制造文件Gerber", "url": "https://docs.lceda.cn/cn/PCB/Gerber-Generate/index.html", "fetched_at": "2026-10-30" },
+    "S_OBS": { "tier": "T0", "title": "开发期实测导出包（2 层板）", "url": "local", "fetched_at": "2026-10-30" }
+  },
+  "required": [
+    { "name": "Gerber_TopLayer.GTL", "role": "copper_top", "src": "S_DOC" },
+    { "name": "Gerber_BottomLayer.GBL", "role": "copper_bottom", "src": "S_DOC" },
+    { "name": "Gerber_BoardOutlineLayer.GKO", "role": "outline", "src": "S_DOC", "why": "板厂按该文件切割板形；槽与实心非镀铜孔也体现在此文件" },
+    { "name": "Gerber_TopSolderMaskLayer.GTS", "role": "mask_top", "src": "S_DOC" },
+    { "name": "Gerber_BottomSolderMaskLayer.GBS", "role": "mask_bottom", "src": "S_DOC" }
+  ],
+  "expected": [
+    { "name": "Gerber_TopSilkscreenLayer.GTO", "role": "silk_top", "src": "S_OBS", "why": "缺失则无丝印，位号/极性不可见" },
+    { "name": "Gerber_BottomSilkscreenLayer.GBO", "role": "silk_bottom", "src": "S_OBS" },
+    { "name": "Drill_PTH_Through.DRL", "role": "drill_plated", "src": "S_OBS", "why": "有过孔/插件孔时必须存在" }
+  ],
+  "optional": [
+    { "name": "Drill_NPTH_Through.DRL", "role": "drill_nonplated", "src": "S_OBS" },
+    { "name": "Drill_PTH_Through_Via.DRL", "role": "drill_plated_via", "src": "S_DOC" },
+    { "name": "Gerber_TopPasteMaskLayer.GTP", "role": "paste_top", "src": "S_OBS" },
+    { "name": "Gerber_BottomPasteMaskLayer.GBP", "role": "paste_bottom", "src": "S_OBS" },
+    { "name": "Gerber_DocumentLayer.GDL", "role": "document", "src": "S_OBS" },
+    { "name": "Gerber_DrillDrawingLayer.GDD", "role": "drill_drawing", "src": "S_OBS", "note": "4.1.93 起导出" },
+    { "name": "FlyingProbeTesting.json", "role": "flying_probe", "src": "S_OBS" },
+    { "name": "PCB下单必读.txt", "role": "readme", "src": "S_OBS" }
+  ],
+  "inner_layer_pattern": {
+    "regex": "^Gerber_InnerLayer(\\d+)\\.(G|GP)(\\d+)$",
+    "note": "内层：信号层为 .G<n>，内电层(负片)为 .GP<n>。内层数 = 总层数 - 2。",
+    "src": "S_DOC"
+  },
+  "heuristics": {
+    "note": "以下是工程启发式，不是嘉立创官方规范；仅产生 WARN，不产生 BLOCK。",
+    "copper_layer_min_ops": 10,
+    "copper_layer_min_ops_why": "铜层的走线/焊盘/铺铜操作总数过少，常见于该层未布线或导出配置遗漏（实测底层铜仅34行而DRC无报错）"
+  },
+  "gerber_extensions": ["GTL", "GBL", "GTO", "GBO", "GTS", "GBS", "GTP", "GBP", "GKO", "GDL"],
+  "drill_extensions": ["DRL"]
+}

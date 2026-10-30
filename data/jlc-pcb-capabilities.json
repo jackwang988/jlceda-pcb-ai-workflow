@@ -1,0 +1,555 @@
+{
+  "schema_version": 1,
+  "site": "jlc.com",
+  "unit": "mm",
+  "description": "嘉立创PCB制板工艺规范库（国内站）。所有数值判定只读此文件；脚本内禁止出现裸阈值。limit=官方极限/最低可行(低于则BLOCK)；recommended=官方建议/EDA预设(低于则WARN)；cost_trigger=官方标注非常规/费用高。",
+  "tolerance_epsilon": 0.001,
+  "sources": {
+    "S_PCB": {
+      "tier": "T1",
+      "title": "嘉立创PCB工艺加工能力范围说明",
+      "url": "https://www.jlc.com/portal/vtechnology.html",
+      "fetched_at": "2026-10-30"
+    },
+    "S_PRESET": {
+      "tier": "T0",
+      "title": "嘉立创EDA专业版客户端内置预设规则 JLCPCB Capability(...)",
+      "url": "eda.pcb_Drc.getAllRuleConfigurations(true)",
+      "fetched_at": "2026-10-30",
+      "note": "客户端 v4.1.93 实测读取，原始快照见 data/rule-presets/_all_raw.json"
+    }
+  },
+  "rules": [
+    {
+      "id": "PCB.TRACE.WIDTH_MIN",
+      "name": "最小线宽",
+      "key": "min_track_width",
+      "op": ">=",
+      "limit": {
+        "by": {
+          "single_1oz": 0.1,
+          "double_1oz": 0.1,
+          "multi_1oz": 0.0889,
+          "double_2oz": 0.16,
+          "multi_2oz": 0.15,
+          "double_2.5oz": 0.2,
+          "double_3.5oz": 0.25,
+          "double_4.5oz": 0.3
+        },
+        "src": "S_PCB",
+        "quote": "最小线宽/线距（1oz）单双面板：0.10/0.10mm(4mil/4mil) 多层板：0.09/0.09mm(3.5mil/3.5mil)；2oz 双面板6.5mil 多层板6mil；2.5oz 8mil；3.5oz 10mil；4.5oz 12mil",
+        "rounding_note": "官方同一行同时印 mm 与 mil（如 0.10mm / 4mil=0.1016mm，四舍五入不一致）。取较小者作为 limit，避免对 0.10mm 等常用合规线宽误判 BLOCK。多层1oz 官方印 0.09mm/3.5mil(=0.0889)，取 0.0889。"
+      },
+      "recommended": {
+        "by": {
+          "single_1oz": 0.102,
+          "double_1oz": 0.127,
+          "multi_1oz": 0.102,
+          "single_2oz": 0.203,
+          "double_2oz": 0.203,
+          "multi_2oz": 0.203
+        },
+        "src": "S_PRESET",
+        "quote": "Physics.Track.copperThickness1oz/2oz.form.strokeWidthMin（Single/Two/Multiple Layers Board 预设）"
+      },
+      "note": "线宽公差 ±20%（官方）"
+    },
+    {
+      "id": "PCB.TRACE.SPACE_MIN",
+      "name": "最小线距",
+      "key": "min_track_space",
+      "op": ">=",
+      "limit": {
+        "by": {
+          "single_1oz": 0.1,
+          "double_1oz": 0.1,
+          "multi_1oz": 0.0889,
+          "double_2oz": 0.16,
+          "multi_2oz": 0.15,
+          "double_2.5oz": 0.2,
+          "double_3.5oz": 0.25,
+          "double_4.5oz": 0.3
+        },
+        "src": "S_PCB",
+        "quote": "最小线宽/线距 同一行给出等值（如 0.10/0.10mm）",
+        "rounding_note": "官方同一行同时印 mm 与 mil（如 0.10mm / 4mil=0.1016mm，四舍五入不一致）。取较小者作为 limit，避免对 0.10mm 等常用合规线宽误判 BLOCK。多层1oz 官方印 0.09mm/3.5mil(=0.0889)，取 0.0889。"
+      },
+      "recommended": {
+        "by": {
+          "default_1oz": 0.102,
+          "default_2oz": 0.203
+        },
+        "src": "S_PRESET",
+        "quote": "Spacing.Safe Spacing.copperThickness1oz/2oz.table[Track-Track]（三套预设一致）"
+      }
+    },
+    {
+      "id": "PCB.DRILL.PLATED_MIN",
+      "name": "最小金属化孔径(含过孔)",
+      "key": "min_plated_drill",
+      "op": ">=",
+      "limit": {
+        "by": {
+          "single": 0.3,
+          "double": 0.15,
+          "multi": 0.15
+        },
+        "src": "S_PCB",
+        "quote": "钻孔孔径 单面板：0.3~6.3mm 双面板：0.15~6.3mm 多层板：0.15~6.3mm"
+      },
+      "recommended": {
+        "by": {
+          "single": 0.3,
+          "double": 0.3,
+          "multi": 0.2
+        },
+        "src": "S_PRESET",
+        "quote": "Physics.Via Size.viaSize.form.viaInnerdiameterMin（单层0.3/双层0.3/多层0.2）；官方另注：最小孔推荐0.2mm以上"
+      },
+      "cost_trigger": {
+        "below": 0.2,
+        "src": "S_PCB",
+        "quote": "双面板、多层板最小钻孔0.15mm（非常规！费用高请慎用）"
+      }
+    },
+    {
+      "id": "PCB.VIA.OUTER_MIN",
+      "name": "最小过孔外径",
+      "key": "min_via_outer",
+      "op": ">=",
+      "limit": {
+        "by": {
+          "single": 0.5,
+          "double": 0.25,
+          "multi": 0.25
+        },
+        "src": "S_PCB",
+        "quote": "最小过孔/焊盘 单面板：0.3mm(内径)/0.5mm(外径) 双面板、多层板：0.15mm(内径)/0.25mm(外径)"
+      },
+      "recommended": {
+        "by": {
+          "single": 0.5,
+          "double": 0.5,
+          "multi": 0.3
+        },
+        "src": "S_PRESET",
+        "quote": "Physics.Via Size.viaSize.form.viaOuterdiameterMin（单层0.5/双层0.5/多层0.3）"
+      }
+    },
+    {
+      "id": "PCB.VIA.RING_MIN",
+      "name": "过孔外径比内径大",
+      "key": "min_via_outer_minus_drill",
+      "op": ">=",
+      "limit": {
+        "value": 0.1,
+        "src": "S_PCB",
+        "quote": "① 外径必须比内径大0.1mm,推荐大0.15mm以上"
+      },
+      "recommended": {
+        "value": 0.15,
+        "src": "S_PCB",
+        "quote": "① 外径必须比内径大0.1mm,推荐大0.15mm以上"
+      }
+    },
+    {
+      "id": "PCB.VIA.HOLE_EDGE_GAP",
+      "name": "过孔孔边到孔边间隙",
+      "key": "min_via_hole_edge_gap",
+      "op": ">=",
+      "limit": {
+        "value": 0.2,
+        "src": "S_PCB",
+        "quote": "④ 过孔孔边到孔边最小间隙0.2mm"
+      },
+      "recommended": {
+        "value": 0.3,
+        "src": "S_PRESET",
+        "quote": "Spacing.Other Spacing.otherClearance.form.hole2Hole=0.3（三套预设一致）"
+      }
+    },
+    {
+      "id": "PCB.TH.ANNULAR_MIN",
+      "name": "有铜插件孔焊环(1oz)",
+      "key": "min_th_annular",
+      "op": ">=",
+      "applies": {
+        "copper_oz": [
+          1
+        ],
+        "layer_class": [
+          "double",
+          "multi"
+        ]
+      },
+      "limit": {
+        "by": {
+          "double": 0.18,
+          "multi": 0.15
+        },
+        "src": "S_PCB",
+        "quote": "有铜插件孔焊环（1oz）双面板：≧0.25mm(建议值)，极限值为0.18mm 多层板：≧0.20mm(建议值)，极限值为0.15mm"
+      },
+      "recommended": {
+        "by": {
+          "double": 0.25,
+          "multi": 0.2
+        },
+        "src": "S_PCB",
+        "quote": "有铜插件孔焊环（1oz）双面板：≧0.25mm(建议值) 多层板：≧0.20mm(建议值)"
+      }
+    },
+    {
+      "id": "PCB.TH.HOLE_GAP",
+      "name": "插件孔孔边到孔边间隙",
+      "key": "min_th_hole_gap",
+      "op": ">=",
+      "limit": {
+        "value": 0.45,
+        "src": "S_PCB",
+        "quote": "插件孔孔边到孔边最小间隙0.45mm"
+      }
+    },
+    {
+      "id": "PCB.TH.DRILL_REC",
+      "name": "插件孔直径(防油墨/喷锡堵孔)",
+      "key": "min_th_drill",
+      "op": ">=",
+      "recommended": {
+        "value": 0.5,
+        "src": "S_PCB",
+        "quote": "为避免油墨或喷锡堵孔，插件孔和NPTH孔直径宜≧0.5mm"
+      }
+    },
+    {
+      "id": "PCB.NPTH.DRILL_REC",
+      "name": "NPTH孔直径(防油墨/喷锡堵孔)",
+      "key": "min_npth_drill",
+      "op": ">=",
+      "recommended": {
+        "value": 0.5,
+        "src": "S_PCB",
+        "quote": "为避免油墨或喷锡堵孔，插件孔和NPTH孔直径宜≧0.5mm"
+      }
+    },
+    {
+      "id": "PCB.NPTH.RING_REC",
+      "name": "无铜插件孔焊环",
+      "key": "min_npth_ring",
+      "op": ">=",
+      "recommended": {
+        "value": 0.45,
+        "src": "S_PCB",
+        "quote": "无铜插件孔焊环 ≧0.45mm(建议值)，因为采用干膜封孔，无铜孔周围会掏空0.2mm的焊盘或铜面"
+      }
+    },
+    {
+      "id": "PCB.PAD.TO_TRACK",
+      "name": "焊盘边到线边间距(1oz)",
+      "key": "min_pad_to_track",
+      "op": ">=",
+      "applies": {
+        "copper_oz": [
+          1
+        ]
+      },
+      "limit": {
+        "value": 0.1,
+        "src": "S_PCB",
+        "quote": "焊盘边到线边间距 (1oz) ≧0.1mm(尽量大于此参数),BGA焊盘到线最小0.09mm"
+      }
+    },
+    {
+      "id": "PCB.MASK.EXPANSION_MIN",
+      "name": "阻焊开窗单边扩展",
+      "key": "min_mask_expansion",
+      "op": ">=",
+      "limit": {
+        "value": 0.0,
+        "src": "S_PCB",
+        "quote": "开窗比焊盘单边≧0mm（客户原资料可以按单边≧0.02mm设计，由我们工程调整好）；2025年6月升级LDI设备，所有板焊盘与开窗1:1设计制作"
+      },
+      "recommended": {
+        "value": 0.051,
+        "src": "S_PRESET",
+        "quote": "Expansion.Solder Mask Expansion.solderMaskExpansion.form.padToplayerExpansion=0.051（三套预设一致）"
+      }
+    },
+    {
+      "id": "PCB.MASK.BRIDGE_1OZ_COLOR",
+      "name": "最小阻焊桥(1oz，绿红黄蓝紫)",
+      "key": "min_mask_bridge",
+      "op": ">=",
+      "applies": {
+        "copper_oz": [
+          1
+        ],
+        "when": {
+          "mask_color": [
+            "green",
+            "red",
+            "yellow",
+            "blue",
+            "purple"
+          ]
+        }
+      },
+      "recommended": {
+        "value": 0.1,
+        "src": "S_PCB",
+        "quote": "最小阻焊桥 成品铜厚（1oz）焊盘间距≧0.10mm（适合绿、红、黄、蓝、紫色油墨）"
+      },
+      "note": "低于此值阻焊桥可能做不出，细间距器件有连锡风险（工程解读，非官方原文）"
+    },
+    {
+      "id": "PCB.MASK.BRIDGE_1OZ_DARK",
+      "name": "最小阻焊桥(1oz，黑白)",
+      "key": "min_mask_bridge",
+      "op": ">=",
+      "applies": {
+        "copper_oz": [
+          1
+        ],
+        "when": {
+          "mask_color": [
+            "black",
+            "white"
+          ]
+        }
+      },
+      "recommended": {
+        "value": 0.13,
+        "src": "S_PCB",
+        "quote": "焊盘间距≧0.13mm（适合黑、白色油墨）"
+      }
+    },
+    {
+      "id": "PCB.MASK.BRIDGE_2OZ",
+      "name": "最小阻焊桥(2oz)",
+      "key": "min_mask_bridge",
+      "op": ">=",
+      "applies": {
+        "copper_oz": [
+          2
+        ]
+      },
+      "recommended": {
+        "value": 0.2,
+        "src": "S_PCB",
+        "quote": "成品铜厚（2oz）焊盘间距≧0.20mm（适合所有颜色油墨）"
+      }
+    },
+    {
+      "id": "PCB.SILK.HEIGHT_MIN",
+      "name": "丝印字符高度",
+      "key": "min_silk_height",
+      "op": ">=",
+      "limit": {
+        "value": 1.0,
+        "src": "S_PCB",
+        "quote": "字符高度 ≧1mm（特殊字体，中文，掏空字符视情况需更高）"
+      }
+    },
+    {
+      "id": "PCB.SILK.WIDTH_MIN",
+      "name": "丝印字符线粗",
+      "key": "min_silk_width",
+      "op": ">=",
+      "limit": {
+        "value": 0.1,
+        "src": "S_PCB",
+        "quote": "字符粗细 ≧0.1mm（低于此值可能印不出来）"
+      }
+    },
+    {
+      "id": "PCB.SILK.TO_PAD",
+      "name": "丝印到露铜焊盘间隙",
+      "key": "min_silk_to_pad",
+      "op": ">=",
+      "recommended": {
+        "value": 0.15,
+        "src": "S_PCB",
+        "quote": "字符到露铜焊盘间隙 ≧0.15mm（低于此值会掏空字符避免上焊盘）"
+      },
+      "note": "低于此值不会报废，但字符会被工厂自动掏空，可能丢失位号/极性标识"
+    },
+    {
+      "id": "PCB.EDGE.ROUTED",
+      "name": "锣边：走线/焊盘距板边",
+      "key": "min_copper_to_edge",
+      "op": ">=",
+      "applies": {
+        "when": {
+          "edge": [
+            "routed"
+          ]
+        }
+      },
+      "limit": {
+        "value": 0.2,
+        "src": "S_PCB",
+        "quote": "锣边处走线和焊盘距板边距离≧0.2mm"
+      }
+    },
+    {
+      "id": "PCB.EDGE.VCUT",
+      "name": "V割：走线/焊盘距板边",
+      "key": "min_copper_to_edge",
+      "op": ">=",
+      "applies": {
+        "when": {
+          "edge": [
+            "vcut"
+          ]
+        }
+      },
+      "limit": {
+        "value": 0.4,
+        "src": "S_PCB",
+        "quote": "V割处走线和焊盘距板边距离≧0.4mm"
+      }
+    },
+    {
+      "id": "PCB.SLOT.PLATED_WIDTH",
+      "name": "有铜槽最小槽宽",
+      "key": "min_slot_plated_width",
+      "op": ">=",
+      "limit": {
+        "by": {
+          "double": 0.5,
+          "multi": 0.35
+        },
+        "src": "S_PCB",
+        "quote": "有铜槽孔 最小槽宽：0.5mm(双面板)，0.35mm(多层板)"
+      }
+    },
+    {
+      "id": "PCB.SLOT.NPTH_WIDTH",
+      "name": "无铜槽最小槽宽",
+      "key": "min_slot_npth_width",
+      "op": ">=",
+      "limit": {
+        "value": 1.0,
+        "src": "S_PCB",
+        "quote": "无铜槽孔 最小槽宽：1.0mm"
+      }
+    },
+    {
+      "id": "PCB.BOARD.SIZE_MIN",
+      "name": "最小板尺寸",
+      "key": "min_board_dim",
+      "op": ">=",
+      "limit": {
+        "value": 3.0,
+        "src": "S_PCB",
+        "quote": "最小尺寸 FR4/高频板：3*3mm"
+      },
+      "note": "小板官方建议拼板"
+    },
+    {
+      "id": "PCB.BOARD.THICKNESS",
+      "name": "常规板厚",
+      "key": "thickness_mm",
+      "from": "process",
+      "op": "in",
+      "applies": {
+        "layers_lt": 12
+      },
+      "limit": {
+        "set": [
+          0.4,
+          0.6,
+          0.8,
+          1.0,
+          1.2,
+          1.6,
+          2.0
+        ],
+        "src": "S_PCB",
+        "quote": "板厚范围 0.4-4.8mm，以系统可选项为准；FR4 常规板厚 0.4/0.6/0.8/1.0/1.2/1.6/2.0（2.5mm 及以上仅 12 层以上）"
+      }
+    },
+    {
+      "id": "PCB.COPPER.OUTER_DOUBLE",
+      "name": "双面板外层成品铜厚",
+      "key": "copper_oz",
+      "from": "process",
+      "op": "in",
+      "applies": {
+        "layer_class": [
+          "double"
+        ]
+      },
+      "limit": {
+        "set": [
+          1,
+          2,
+          2.5,
+          3.5,
+          4.5,
+          5,
+          6
+        ],
+        "src": "S_PCB",
+        "quote": "外层铜厚 双面板（1oz, 2oz, 2.5oz, 3.5oz, 4.5oz，5oz，6oz）"
+      }
+    },
+    {
+      "id": "PCB.COPPER.OUTER_MULTI",
+      "name": "多层板外层成品铜厚",
+      "key": "copper_oz",
+      "from": "process",
+      "op": "in",
+      "applies": {
+        "layer_class": [
+          "multi"
+        ]
+      },
+      "limit": {
+        "set": [
+          1,
+          1.5,
+          2
+        ],
+        "src": "S_PCB",
+        "quote": "外层铜厚 多层板（1oz，2oz）；6层板已增加支持1.5oz外层铜厚"
+      }
+    },
+    {
+      "id": "PCB.FINISH.HASL_NOT_FOR_6L",
+      "name": "6层及以上不做喷锡",
+      "key": "surface",
+      "from": "process",
+      "op": "not_in",
+      "applies": {
+        "layers_ge": 6
+      },
+      "limit": {
+        "set": [
+          "HASL_LEADED",
+          "HASL_LEADFREE"
+        ],
+        "src": "S_PCB",
+        "quote": "6层及6层以上的FR4/HDI板、板厚≦0.4mm、高频板、铜基板、FPC均不做喷锡"
+      }
+    },
+    {
+      "id": "PCB.FINISH.HASL_NOT_FOR_THIN",
+      "name": "板厚≤0.4mm不做喷锡",
+      "key": "surface",
+      "from": "process",
+      "op": "not_in",
+      "applies": {
+        "thickness_le": 0.4
+      },
+      "limit": {
+        "set": [
+          "HASL_LEADED",
+          "HASL_LEADFREE"
+        ],
+        "src": "S_PCB",
+        "quote": "板厚≦0.4mm ... 均不做喷锡"
+      }
+    }
+  ]
+}

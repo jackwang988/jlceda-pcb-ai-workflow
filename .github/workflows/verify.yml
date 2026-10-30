@@ -1,0 +1,26 @@
+name: Verify public skill
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  offline:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.8', '3.11', '3.13']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Check reproducible synthetic fixtures
+        run: python tools/make_fixtures.py --check
+      - name: Check Agent Skills structure
+        run: python tools/validate_skill.py .
+      - name: Offline security signatures
+        run: python tools/privacy_scan.py .
+      - name: Offline regression suite
+        run: python -B tests/run_tests.py
