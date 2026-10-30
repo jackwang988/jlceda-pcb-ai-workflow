@@ -1,0 +1,4 @@
+# Preserve byte-identical fixtures and LF text across Windows, Linux and macOS
+* text=auto eol=lf
+*.zip -text
+*.csv -text

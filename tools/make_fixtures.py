@@ -149,6 +149,7 @@ def zip_bytes(files):
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_STORED) as z:
         for name in sorted(files):
             zi = zipfile.ZipInfo(name, ZIP_TIME)
+            zi.create_system = 3  # force identical ZIP metadata on Windows and Linux
             zi.compress_type = zipfile.ZIP_STORED
             data = files[name]
             z.writestr(zi, data.encode("utf-8") if isinstance(data, str) else data)
