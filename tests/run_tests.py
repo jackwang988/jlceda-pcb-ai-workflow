@@ -236,7 +236,8 @@ def run_bc(bom=None, cpl=None, extra=(), suffix=".csv"):
         for k, txt in (("--bom", bom), ("--cpl", cpl)):
             if txt is not None:
                 f = Path(td) / (k[2:] + suffix)
-                f.write_text(txt, encoding="utf-8", newline="")
+                with f.open("w", encoding="utf-8", newline="") as output_file:
+                    output_file.write(txt)
                 args += [k, str(f)]
         args += list(extra)
         buf, err = io.StringIO(), io.StringIO()
@@ -521,7 +522,9 @@ def _proj(td, process=None, gerber=BASE):
     import shutil as _sh
     _sh.copy2(gerber, d / "gerber.zip")
     bom, cpl = _norm_texts()
-    (d / "bom.csv").write_text(bom, encoding="utf-8", newline=""); (d / "cpl.csv").write_text(cpl, encoding="utf-8", newline="")
+    for filename, text in (("bom.csv", bom), ("cpl.csv", cpl)):
+        with (d / filename).open("w", encoding="utf-8", newline="") as output_file:
+            output_file.write(text)
     return d
 
 

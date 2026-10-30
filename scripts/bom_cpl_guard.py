@@ -323,7 +323,8 @@ def normalize(src, dst, kind):
     w = csv.writer(buf, lineterminator="\n")
     w.writerow(h)
     w.writerows(out)
-    Path(dst).write_text(buf.getvalue(), encoding="utf-8", newline="")
+    with Path(dst).open("w", encoding="utf-8", newline="") as output_file:
+        output_file.write(buf.getvalue())
     return {"from": t["encoding"] + "/" + t["delimiter"], "to": "utf-8/COMMA", "rows": len(out),
             "blank_lines_removed": t["blank_lines_removed"]}
 

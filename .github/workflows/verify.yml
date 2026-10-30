@@ -3,6 +3,9 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+env:
+  PYTHONIOENCODING: utf-8
+  PYTHONUTF8: "1"
 jobs:
   offline:
     strategy:
