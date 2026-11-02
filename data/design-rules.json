@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "scope": "engineering_layout_heuristics_not_jlc_fab_limits",
+  "provenance": "engineering quality heuristics; never interpreted as official JLCPCB fabrication limits",
+  "schematic": {
+    "page_occupancy_suggest_at": 0.65,
+    "page_occupancy_threshold_is_hard_block": false,
+    "layout_order": ["topology", "real_pins_and_stubs", "component_coordinates", "ports", "labels", "regions_title_block", "ERC"],
+    "wire_style": "prefer_orthogonal",
+    "grid": "require_project_eda_readback"
+  },
+  "pcb": {
+    "preserve_board_outline_and_holes": true,
+    "automatic_clear_without_explicit_approval": false,
+    "measured_bbox_required": true,
+    "drc_authority": "native_eda",
+    "ratsnest_score": "NOT_MEASURED"
+  }
+}

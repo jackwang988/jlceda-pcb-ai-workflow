@@ -37,6 +37,8 @@
 
 ## 4. P2–P4 要点
 
+本版本增加 read-only BBox/机械朝向预审（pcb-placement.md；geometry_audit.py）；本 Skill 不复制 EDA DRC，且禁止默认清板。
+
 - **布局**：模块分区、去耦就近、天线净空（模组天线端禁铺铜/走线/摆件）、板边与孔位；`autoLayout` 仅作候选，且先 `typeof` 判断。
 - **布线**：关键网络优先；`autoRouting` 内部 900s 硬上限，大板分网络批次；铺铜重建后必须 **save → 重载 → 再 DRC**。
 - **评审（G4）**：`drc_check.py`（记录规则预设名）+ AI 逐层读图。DRC 返回的 `Connection Error` 须全部清零才能进入导出放行。

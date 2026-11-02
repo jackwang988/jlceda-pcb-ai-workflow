@@ -11,10 +11,10 @@
 | 需求架构 | A1 需求量化 | 需求表：ID、来源、量化验收；未知项列“待确认”不猜 | — |
 | | A2 工艺声明 | **用户填写** `process.json`：layers / copper_oz 必填，另有 thickness_mm / surface / edge / mask_color / smt | — |
 | 原理图 | S1 选型 | C 编号、引脚与封装对照 datasheet（见 library-selection） | |
-| | S2 绘制 | 经 Bridge 分批放置/连线，网络名连线优先 | |
-| | S3 评审 | `sch_Drc.check` + 引脚/电源谓词 + AI 逐功能读图 | **G1 原理图**、**G2 库/封装** |
+| | S2 绘制 | 拓扑/Stub/模块功能分区先行，联合规划器件和走线；再分批落图、save 与回读 | |
+| | S3 评审 | 实测 BBox 几何预审 + `sch_Drc.check` + 引脚/电源谓词 + AI 逐功能读图 | **G1 原理图**、**G2 库/封装** |
 | PCB | P1 规则 | 读官方预设→建网络类/差分→写回；`rules_check.py` 确认规则不低于工艺 | |
-| | P2 布局 | 分区、天线净空、去耦就近、板边与孔位 | **G3 布局** |
+| | P2 布局 | 保护机械基线；实测 BBox 后布局；校验朝向、Keepout、去耦与安装空间 | **G3 布局** |
 | | P3 布线 | 关键网络优先；铺铜后 save→重载→再 DRC | |
 | | P4 评审 | `drc_check.py` 清零 + AI 逐层读图 | **G4 PCB** |
 | 制造 | M1 导出 | `export_gerber.py`、`export_bom_cpl.py`（均只读，拒绝覆盖） | |
@@ -28,6 +28,9 @@
 - **自动失效**：被绑定文件一变，该门禁与其后全部门禁变 `STALE`，必须重新确认。
 - `release.py` 封存前再次要求：G1–G5 全 CONFIRMED、Gerber/BOM/坐标都被 G5 绑定且哈希未变、并**当场重新复核**（不信旧报告）。
 
+- **0.10 几何设计前置**：S2 绘制前先拓扑/Stub 与功能分区规划，S3 在 ERC 外检查原理图几何粗审计；P1 预先制定 NetClass、机械约束，P2 先读取实测 BBox 再布局，并检查接口朝向、天线禁布区。参阅 schematic-layout.md、pcb-placement.md。
+- 新增 geometry_audit.py **只读证据预审**，不可取代 EDA DRC。G1、G3 若使用审计报告，需与相应设计版本一同绑定哈希；无法回读则 NEEDS_EVIDENCE，不能声称 PASS。
+- 禁止对已有 PCB 默认清板；先另存设计候选、保护板框/安装孔/禁布区、记录变更与回退。
 ## 节点约定
 
 - **默认预览**：写入类动作先输出“将执行的 JS + 预计影响”，用户答复编号后才执行；执行后回读对账。

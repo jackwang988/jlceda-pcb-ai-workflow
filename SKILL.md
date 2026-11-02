@@ -4,7 +4,7 @@ description: 嘉立创EDA专业版(LCEDA/EasyEDA Pro)的设计流程与制板规
 license: MIT
 compatibility: Python>=3.8 (stdlib only). Offline checks need nothing else; drc_check/export_gerber/export_bom_cpl need JLCEDA/EasyEDA Pro >=4.1 and the easyeda-api bridge.
 metadata:
-  version: "0.9.0"
+  version: "0.10.0"
   status: beta
   data_site: jlc.com
   data_retrieved: "2026-10-30"
@@ -16,6 +16,11 @@ metadata:
 
 先读 [统一流程](references/universal-workflow.md) 与 [对话确认门](references/stage-approvals.md)。退出码 0 只代表“声明范围内无阻断”，**不代表电路正确，也不代表可以生产**。
 
+## v0.10.0 增强：拓扑、功能分区与实测 BBox 预审
+
+原理图请读 [功能分区与走线通道](references/schematic-layout.md)，PCB 布局请读 [机械、朝向与 Keepout](references/pcb-placement.md)，证据输入见 [几何审计契约](references/geometry-evidence.md)。ESP32 专用规则仅在匹配项目时启用（data/profiles/esp32-board.json）。参考样图的模块框、短走线和独立标题栏是**风格目标**，并非固定电路模板。
+
+新增 scripts/geometry_audit.py 只读 JSON 证据；**无法取代原生 ERC/DRC，也未完成真实 Bridge 图元自动采集或自动布局求解验证**。缺实测几何证据不得通过，严禁默认自动清板。
 ## 红线（不可绕过）
 
 1. **永不调用** `placePcbOrder / placeSmtComponentsOrder / placeComponentsOrder`（会真实开订单页）。`bridge_client.py` 发送前拦截。
@@ -25,7 +30,8 @@ metadata:
 5. 不为过检查而改网络、删器件、放宽规则；放宽规则须有工艺依据并留痕。
 6. 写入类操作结尾必须 save 并回读对账（未 save 重启即丢整板）。
 7. 单位/图层 ID 用常量表：[单位与 ID](references/units-and-ids.md)。
-8. **确认必须是用户的原话**：`workflow.py confirm --user-reply` 不得由 Agent 代填。
+8. **禁止默认清板**；任何清除器件/铜皮的操作需备份、用户明确确认并校验板框/孔/Keepout。
+9. **确认必须是用户的原话**：`workflow.py confirm --user-reply` 不得由 Agent 代填。
 
 ## 阶段 → 读什么
 
@@ -33,8 +39,8 @@ metadata:
 |---|---|---|
 | E1 A1 A2 | 工程保护、需求量化、工艺声明 | [universal-workflow](references/universal-workflow.md) |
 | S1 选型 | C 编号、引脚/封装对照 datasheet | [library-selection](references/library-selection.md) |
-| S2 S3 | 绘制与评审（分批、save、ERC） | [bridge-runtime](references/bridge-runtime.md)、[api-map](references/api-map.md) |
-| P1–P4 | 设计规则、布局、布线、DRC | [pcb-rules](references/pcb-rules.md) |
+| S2 S3 | 拓扑优先、功能分区、实测几何预审、ERC | [bridge-runtime](references/bridge-runtime.md)、[api-map](references/api-map.md) |
+| P1–P4 | 机械约束、BBox、朝向、布局、布线、DRC | [pcb-rules](references/pcb-rules.md) |
 | M1 M2 | Gerber / BOM / 坐标 导出与复核 | [gerber-export](references/gerber-export.md)、[bom-cpl](references/bom-cpl.md) |
 | 终点 | 封存发布包 | [universal-workflow](references/universal-workflow.md) |
 | 规范来源 | 数值从哪来、冲突与漂移 | [spec-provenance](references/spec-provenance.md) |
@@ -50,6 +56,7 @@ python $S/scripts/workflow.py confirm <工程目录> --gate G1 --choice 1 --user
 python $S/scripts/workflow.py plan --task list                   # 白名单任务清单
 # 检查
 python $S/scripts/rules_check.py --config rules.json --process process.json   # 设计规则不低于嘉立创工艺（离线）
+python $S/scripts/geometry_audit.py --input evidence.json --json-out report.json # 只读几何粗审计（离线）
 python $S/scripts/drc_check.py                                   # 原生 DRC（连 EDA，只读）
 python $S/scripts/export_gerber.py --out <新.zip>                # 导出 Gerber（连 EDA，拒绝覆盖）
 python $S/scripts/gerber_guard.py <zip> --process process.json   # Gerber 独立复核
@@ -58,7 +65,8 @@ python $S/scripts/bom_cpl_guard.py check --bom b.csv --cpl c.csv --gerber <zip>
 # 终点与维护
 python $S/scripts/release.py <工程目录> --version V1.0 --gerber gerber.zip --bom bom.csv --cpl cpl.csv [--apply]
 python $S/scripts/spec_drift.py                                  # 规范数值 vs 官方页面（联网，只报告）
-python $S/tests/run_tests.py [--live]                            # 缺陷注入与单元测试
+python $S/tests/run_tests.py [--live]
+python -B $S/tests/test_geometry_audit.py # 28 项合成测试                            # 缺陷注入与单元测试
 ```
 
 工艺声明模板 `assets/process.template.json`。阈值只存在于 `data/*.json`，每条带来源与原文片段；脚本内不得出现裸阈值（测试 B07 检查）。
@@ -70,5 +78,6 @@ python $S/tests/run_tests.py [--live]                            # 缺陷注入�
 ## 放行边界
 
 - **线距、焊盘距、阻焊桥、孔环、板边等几何检查由 EDA 自身 DRC 负责**，本 skill 不重复实现；它保证的是“给 DRC 的尺子（设计规则）不低于嘉立创工艺”（`rules_check`）以及“导出文件本身没问题”（`gerber_guard`/`bom_cpl_guard`）。
+- 几何 BBox 粗审计不检验非矩形板轮廓、实际 3D 装配、鼠线总长、可布线性评分；结果不得冒充 DRC。
 - DRC 通过 ≠ 满足嘉立创工艺（规则可被放宽）；Gerber/BOM 文件存在 ≠ 内容正确；**C 编号与器件是否对应无法离线验证**，以嘉立创下单页匹配结果为准。
 - 本 skill 不替代电路功能验证、SI/EMC/热分析与嘉立创自身的下单审核。数值抓取于 2026-10-30（国内站 jlc.com），出厂前跑 `spec_drift` 并人工抽查。

@@ -3,12 +3,27 @@
 > 嘉立创EDA（LCEDA / EasyEDA Pro）**设计流程与制板规范门禁** skill —— 从需求到导出 Gerber / BOM / 坐标并封存。
 > An AI-agent skill that wraps a *design-to-fabrication-files* workflow for JLCEDA / EasyEDA Pro with JLCPCB-process gates.
 
-状态：**0.9.0 beta** · 许可：MIT（第三方引文见 [LICENSE](LICENSE)） · 离线仅依赖 **Python ≥ 3.8 标准库**
+状态：**0.10.0 beta** · 许可：MIT（第三方引文见 [LICENSE](LICENSE)） · 离线仅依赖 **Python ≥ 3.8 标准库**
 
 ---
 
 ## 中文
 
+### v0.10.0：原理图版式与几何预审
+
+参考用户给出的 ESP32 最小系统原理图风格：按功能域分区、模块内部短而正交的导线、清晰跨模块网络标记、统一文字、独立标题栏。**仅提炼布局规律，未复制图片、商标、具体引脚和电路参数。**
+
+- [原理图拓扑与版式](references/schematic-layout.md)
+- [PCB 机械/朝向/Keepout 审计](references/pcb-placement.md)
+- [审计输入 JSON 契约](references/geometry-evidence.md)
+- 可选 ESP32 规则：data/profiles/esp32-board.json
+
+运行示例：
+
+    python scripts/geometry_audit.py --input evidence.json --json-out geometry-report.json
+    python -B tests/test_geometry_audit.py
+
+新增审计只读取 JSON 图元测量值，不能替代 ERC/DRC、真实非矩形板轮廓、3D 装配或制造文件检查；**当前不包含已验证的自动 Bridge 证据采集和全自动布局求解器**。继续执行原有 G1–G5 门禁，且不得默认清空已有 PCB。
 ### 它是什么
 一套给 AI 编程助手用的 skill：**AI 负责设计与判断，脚本只负责在声明范围内独立复核**，用户用编号答复通过 5 道门禁，最后封存成带哈希清单的发布包。
 全程**不上传、不下单**；缺工艺声明、缺证据一律 `BLOCKED`，不猜、不默认通过。
@@ -28,7 +43,7 @@
 | 项 | 要求 |
 |---|---|
 | Python | ≥ 3.8，**仅标准库**（无需 `pip install`） |
-| 离线部分 | 无需 EDA：`gerber_guard` `bom_cpl_guard` `rules_check` `spec_check` `workflow` `release` `spec_drift` |
+| 离线部分 | 无需 EDA：`gerber_guard` `bom_cpl_guard` `rules_check` `spec_check` `workflow` `release` `spec_drift` `geometry_audit` |
 | 连 EDA 的部分 | `drc_check` `export_gerber` `export_bom_cpl`：需要 **嘉立创EDA 专业版 ≥ 4.1**，以及 [`easyeda-api`](https://github.com/easyeda/easyeda-api-skill) 提供的 Bridge 与 `run-api-gateway` 扩展（本 skill **不检查你的环境**，通道不通则 `BLOCKED` 并停止） |
 | 已验证版本 | EDA 4.1.93（在线端到端）；Gerber 解析在 3.2.149 与 4.1.93 导出上验证（**仅 2 层板**） |
 | 数据口径 | 国内站 jlc.com；数值抓取于 2026-10-30 |

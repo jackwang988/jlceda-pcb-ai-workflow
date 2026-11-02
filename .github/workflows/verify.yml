@@ -27,3 +27,5 @@ jobs:
         run: python tools/privacy_scan.py .
       - name: Offline regression suite
         run: python -B tests/run_tests.py
+      - name: Read-only geometry audit regression suite
+        run: python -B tests/test_geometry_audit.py

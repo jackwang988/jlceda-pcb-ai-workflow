@@ -9,7 +9,7 @@
 | 选型 | 对照 datasheet 核引脚/封装/关键值 | 无自动查 EOL/NRND、库存价格；**不联网验证 C 编号与器件对应** |
 | 设计规则 | 读官方预设→建网络类→写回；`rules_check.py` 离线核对规则不低于工艺 | 不做阻抗求解；检查的是**规则值**不是设计实测值 |
 | 几何检查（线距/焊盘距/阻焊桥/孔环/板边） | **EDA 自身 DRC** | 本 skill 不重复实现；规则放宽则 DRC 一并放宽，故有 `rules_check` 兜底 |
-| 布局/布线 | 人工 + `autoLayout/autoRouting`（若存在） | 自动结果仅作候选；900s 硬上限 |
+| 布局/布线 | 人工 + `autoLayout/autoRouting`（若存在）；新增只读 BBox/方向/Keepout 预审 | 自动结果仅作候选；未实现全自动拓扑联合求解、Bridge 全量图元采集、真实 3D 装配或鼠线评分 |
 | 原生 DRC | `drc_check.py`（verbose，只读） | 范围=已启用规则 |
 | Gerber | `export_gerber.py` 导出；`gerber_guard.py` 独立复核 | 只复核文件能反推的项；导出≠内容正确 |
 | BOM/坐标 | `export_bom_cpl.py` 导出并规范化；`bom_cpl_guard.py` 复核 | 格式类硬规则全自动；**不判断极性/旋转对错**，不核对 C 编号 |

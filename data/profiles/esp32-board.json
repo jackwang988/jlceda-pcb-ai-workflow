@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "profile": "esp32-board",
+  "applicability": "ESP32 design with explicitly selected variant and verified module datasheet",
+  "schematic_block_examples": [
+    "USB / power input", "power regulator", "main controller",
+    "reset / boot", "UART download", "status LEDs", "I/O headers"
+  ],
+  "page_layout": "dynamic_functional_blocks_not_fixed_pages",
+  "electrical": {
+    "controller_pins": "verify_exact_part_and_datasheet",
+    "usb_diffpair": "only_if_controller_supports_and_project_uses_it",
+    "antenna": "only_for_onboard_antenna_modules",
+    "rf_keepout": "module_specific_footprint_and_vendor_guideline",
+    "usb_c_orientation": "require_verified_connector_mechanical_geometry"
+  },
+  "vendor_reference": "https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32s3/",
+  "warning": "No universal antenna 15mm rule. Do not force USB or RF checks onto boards without those features."
+}
