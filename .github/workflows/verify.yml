@@ -34,3 +34,5 @@ jobs:
         run: python -B tests/run_tests.py
       - name: Read-only geometry audit regression suite
         run: python -B tests/test_geometry_audit.py
+      - name: Schematic project-spec regression suite
+        run: python -B tests/test_schematic_spec_check.py

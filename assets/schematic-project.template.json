@@ -1,0 +1,37 @@
+{
+  "schema_version": 1,
+  "domain": "schematic",
+  "unit": "sch_api_10mil",
+  "_note": "项目规划模板，不是合格样例。填入真实工程、模块、正式页和全量引脚；null/unresolved 不得当作已确认。无固定 MCU、页数或模块数。",
+  "project_id": null,
+  "schematic_id": null,
+  "pages": [
+    {"id": null, "drawable_bbox": null, "forbidden_bboxes": []}
+  ],
+  "modules": [
+    {
+      "id": "module-a",
+      "title": "功能模块",
+      "purpose": null,
+      "page_id": null,
+      "parent_id": null,
+      "frame_required": true,
+      "title_required": true,
+      "critical_connections": [],
+      "datasheet_refs": []
+    }
+  ],
+  "components": [
+    {
+      "ref": "U1",
+      "subpart": "",
+      "module_id": "module-a",
+      "pins": [
+        {"number": "1", "state": "unresolved", "net": null, "net_scope": null, "reason": null}
+      ]
+    }
+  ],
+  "interfaces": [],
+  "layout": {"module_padding": null, "label_gap": null},
+  "required_geometry": ["component", "label", "wire", "stub", "port", "section", "annotation"]
+}

@@ -3,11 +3,20 @@
 > 嘉立创EDA（LCEDA / EasyEDA Pro）**设计流程与制板规范门禁** skill —— 从需求到导出 Gerber / BOM / 坐标并封存。
 > An AI-agent skill that wraps a *design-to-fabrication-files* workflow for JLCEDA / EasyEDA Pro with JLCPCB-process gates.
 
-状态：**0.10.0 beta** · 许可：MIT（第三方引文见 [LICENSE](LICENSE)） · 离线仅依赖 **Python ≥ 3.8 标准库**
+状态：**0.11.0 beta** · 许可：MIT（第三方引文见 [LICENSE](LICENSE)） · 离线仅依赖 **Python ≥ 3.8 标准库**
 
 ---
 
 ## 中文
+
+### v0.11.0：原理图项目规格与模块检查
+
+先从 `assets/schematic-project.template.json` 声明本项目模块、接口、页面、版式及全量引脚状态。规则与证据格式集中在[原理图规格说明](references/schematic-layout.md)。新工具只读归一化 JSON，检查模块框重叠、长标签越框、未知引脚、跨页作用域和缺失通道证据，不自动改图或替代原生 ERC/读图。
+
+    python scripts/schematic_spec_check.py --spec schematic-project.json --evidence schematic-readback.json --json-out spec-report.json
+    python -B tests/test_schematic_spec_check.py
+
+模板未填会报告缺证据。支持嵌套模块、多点接口和多单元符号；没有已验证的自动采集/布局求解器。PCB、共享执行脚本与 G1–G5 保持不变，原单页 geometry_audit 用法仍可用。
 
 ### v0.10.0：原理图版式与几何预审
 
@@ -43,7 +52,7 @@
 | 项 | 要求 |
 |---|---|
 | Python | ≥ 3.8，**仅标准库**（无需 `pip install`） |
-| 离线部分 | 无需 EDA：`gerber_guard` `bom_cpl_guard` `rules_check` `spec_check` `workflow` `release` `spec_drift` `geometry_audit` |
+| 离线部分 | 无需 EDA：`gerber_guard` `bom_cpl_guard` `rules_check` `spec_check` `workflow` `release` `spec_drift` `geometry_audit` `schematic_spec_check` |
 | 连 EDA 的部分 | `drc_check` `export_gerber` `export_bom_cpl`：需要 **嘉立创EDA 专业版 ≥ 4.1**，以及 [`easyeda-api`](https://github.com/easyeda/easyeda-api-skill) 提供的 Bridge 与 `run-api-gateway` 扩展（本 skill **不检查你的环境**，通道不通则 `BLOCKED` 并停止） |
 | 已验证版本 | EDA 4.1.93（在线端到端）；Gerber 解析在 3.2.149 与 4.1.93 导出上验证（**仅 2 层板**） |
 | 数据口径 | 国内站 jlc.com；数值抓取于 2026-10-30 |

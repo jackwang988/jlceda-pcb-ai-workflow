@@ -4,7 +4,7 @@ description: 嘉立创EDA专业版(LCEDA/EasyEDA Pro)的设计流程与制板规
 license: MIT
 compatibility: Python>=3.8 (stdlib only). Offline checks need nothing else; drc_check/export_gerber/export_bom_cpl need JLCEDA/EasyEDA Pro >=4.1 and the easyeda-api bridge.
 metadata:
-  version: "0.10.0"
+  version: "0.11.0"
   status: beta
   data_site: jlc.com
   data_retrieved: "2026-10-30"
@@ -21,6 +21,8 @@ metadata:
 原理图请读 [功能分区与走线通道](references/schematic-layout.md)，PCB 布局请读 [机械、朝向与 Keepout](references/pcb-placement.md)，证据输入见 [几何审计契约](references/geometry-evidence.md)。ESP32 专用规则仅在匹配项目时启用（data/profiles/esp32-board.json）。参考样图的模块框、短走线和独立标题栏是**风格目标**，并非固定电路模板。
 
 新增 scripts/geometry_audit.py 只读 JSON 证据；**无法取代原生 ERC/DRC，也未完成真实 Bridge 图元自动采集或自动布局求解验证**。缺实测几何证据不得通过，严禁默认自动清板。
+
+v0.11.0 原理图从 `assets/schematic-project.template.json` 建立模块、接口、分页和全量引脚规格，按上述原理图参考使用 `scripts/schematic_spec_check.py` 补充只读检查。未知脚不得自动转 NC，缺 Stub 不得冒充零冲突；PCB 与 G1–G5 行为不变。
 ## 红线（不可绕过）
 
 1. **永不调用** `placePcbOrder / placeSmtComponentsOrder / placeComponentsOrder`（会真实开订单页）。`bridge_client.py` 发送前拦截。
